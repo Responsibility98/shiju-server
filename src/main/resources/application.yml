@@ -1,0 +1,64 @@
+server:
+  port: 8080  # 设置应用启动时使用的端口
+  servlet:
+    context-path: /shiju # 设置应用的根上下文路径（可选）
+
+logging:
+  level:
+    org.springframework: INFO  # 设置 Spring 框架的日志级别
+    org.hibernate: WARN  # 设置 Hibernate 的日志级别为 WARN，以减少 SQL 输出日志
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"  # 定义日志输出格式
+  file:
+    name: logs/spring-boot-app.log  # 设置日志输出到文件
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://182.160.13.145:3306/hehe-emudb?useSSL=false&characterEncoding=utf-8&serverTimezone=UTC
+    username: root
+    password: Yi8976hH#NB
+  jpa:
+    hibernate:
+      ddl-auto: none
+      #ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+
+#  datasource:
+#    url: jdbc:mysql://localhost:3306/stray_animal  # 数据库连接URL
+#    username: root  # 数据库用户名
+#    password: zy19981022 # 数据库密码
+#    driver-class-name: com.mysql.cj.jdbc.Driver  # 数据库驱动
+#    hikari:
+#      maximum-pool-size: 10  # 设置数据库连接池的最大连接数
+#  jpa:
+#    hibernate:
+#      ddl-auto: update  # 自动更新数据库结构（开发阶段使用）
+#    show-sql: true  # 显示 SQL 查询
+    properties:
+      hibernate:
+        format_sql: true  # 格式化 SQL 查询日志
+  jackson:
+    serialization:
+      fail-on-empty-beans: false  # 如果序列化空对象时不抛出异常
+
+  # 配置文件上传
+  multipart:
+    max-file-size: 10MB  # 最大上传文件大小
+    max-request-size: 10MB  # 最大请求体大小
+
+  # 其他 Spring Boot 配置...
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info  # 只暴露健康检查和信息端点
+  health:
+    enabled: true  # 启用健康检查
+  metrics:
+    enabled: true  # 启用度量功能
+
