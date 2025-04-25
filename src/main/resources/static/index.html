@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>📷 OCR 图片识别工具</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background: #f4f6f9;
+            padding: 30px;
+            color: #333;
+        }
+        .container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        #preview {
+            display: block;
+            margin: 20px auto;
+            max-width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .btn {
+            display: block;
+            margin: 15px auto;
+            padding: 12px 30px;
+            background-color: #3498db;
+            color: #fff;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        #result {
+            background: #ecf0f1;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: Consolas, monospace;
+            position: relative;
+            word-wrap: break-word;
+        }
+        #copyBtn {
+            background-color: #2ecc71;
+            margin-top: 10px;
+        }
+        #copyBtn:hover {
+            background-color: #27ae60;
+        }
+        #status {
+            text-align: center;
+            color: #888;
+            margin-top: 10px;
+        }
+        #history {
+            margin-top: 30px;
+        }
+        #history h4 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .history-item {
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .history-item:hover {
+            background: #ecf0f1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>📷 OCR 图片识别工具</h2>
+
+    <input type="file" id="imageInput" accept="image/*">
+    <img id="preview" src="" alt="预览图" style="display: none;">
+    <button class="btn" id="uploadBtn" onclick="uploadAndRecognize()">上传并识别文字</button>
+    <div id="status"></div>
+
+    <h3>识别结果：</h3>
+    <div id="result">请上传图片并点击识别</div>
+    <button class="btn" id="copyBtn" onclick="copyResult()">复制识别结果</button>
+
+    <div id="history">
+        <h4>历史记录：</h4>
+        <!-- 历史记录列表 -->
+    </div>
+</div>
+
+<script>
+    let selectedFile = null;
+    const imageInput = document.getElementById('imageInput');
+    const preview = document.getElementById('preview');
+    const resultDiv = document.getElementById('result');
+    const statusDiv = document.getElementById('status');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const historyDiv = document.getElementById('history');
+
+    let historyData = [];  // 用来保存历史记录
+
+    imageInput.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                preview.src = event.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function uploadAndRecognize() {
+        if (!selectedFile) {
+            alert('请先选择一张图片');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+
+        statusDiv.textContent = '识别中...';
+        uploadBtn.disabled = true;
+
+        axios.post('http://localhost:8080/shiju/uploadImage', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+            .then(response => {
+                const resultText = (response.data.data.text || '未识别到文字')
+                    .replace(/\n+/g, '\n')    // 替换多余的空行
+                    .replace(/^\n+|\n+$/g, '');  // 去除首尾的空行
+                resultDiv.textContent = resultText;
+                statusDiv.textContent = '识别完成';
+
+                // 将识别结果添加到历史记录
+                addHistory(resultText);
+            })
+            .catch(error => {
+                console.error(error);
+                resultDiv.textContent = '❌ 识别失败，请检查接口是否正常。';
+                statusDiv.textContent = '识别失败';
+            })
+            .finally(() => {
+                uploadBtn.disabled = false;
+            });
+    }
+
+
+    function copyResult() {
+        const text = resultDiv.textContent;
+        if (!text) {
+            alert('没有可复制的内容');
+            return;
+        }
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert('识别结果已复制到剪贴板');
+        }).catch(err => {
+            alert('复制失败，请手动复制');
+        });
+    }
+
+    function addHistory(text) {
+        historyData.push(text);
+        const historyItem = document.createElement('div');
+        historyItem.classList.add('history-item');
+        historyItem.textContent = text;
+        historyItem.onclick = function() {
+            resultDiv.textContent = text;
+        };
+
+        historyDiv.appendChild(historyItem);
+    }
+</script>
+</body>
+</html>
