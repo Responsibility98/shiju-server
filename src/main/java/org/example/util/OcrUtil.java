@@ -10,7 +10,6 @@ public class OcrUtil {
 
     private static final String  tessdataPath = "./Tesseract-OCR/tessdata";
 
-
     public static String ocrByImage(File image) throws TesseractException {
         Tesseract tess = new Tesseract();
         tess.setDatapath(tessdataPath);

@@ -69,6 +69,7 @@
             font-family: Consolas, monospace;
             position: relative;
             word-wrap: break-word;
+            letter-spacing: 0;
         }
         #copyBtn {
             background-color: #2ecc71;
@@ -159,7 +160,7 @@
         statusDiv.textContent = '识别中...';
         uploadBtn.disabled = true;
 
-        axios.post('http://localhost:8080/shiju/uploadImage', formData, {
+        axios.post('/shiju/uploadImage', formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         })
             .then(response => {
